@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chroma-admin-cli"
+version = "0.1.0"
+description = "Interactive CLI for ChromaDB administration"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Pedro Marquardt", email = "pedromarquardt13@gmail.com"}
+]
+dependencies = [
+    "typer>=0.9.0",
+    "chromadb-client==1.5.0",
+    "rich==15.0.0",
+    "questionary==2.1.1"
+]
+
+[project.urls]
+Homepage = "https://github.com/Pedro-Marquardt/chroma-admin-cli"
+Repository = "https://github.com/Pedro-Marquardt/chroma-admin-cli.git"
+
+[project.scripts]
+chroma-cli = "chroma_cli.main:app"

@@ -1,0 +1,30 @@
+# Ambientes Virtuais e Variáveis
+.venv/
+venv/
+env/
+.env
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Build e Publicação PyPI
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Arquivos de Configuração e Senhas da CLI (Proteção de Credenciais)
+.chroma_cli.json
+
+# Banco de Dados Local do Chroma (caso rode instâncias de teste na pasta)
+chroma_data/
+chroma/
+
+# Arquivos de IDE e Sistema
+.vscode/
+.idea/
+*.swp
+.DS_Store
