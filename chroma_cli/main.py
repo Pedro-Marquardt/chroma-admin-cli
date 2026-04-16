@@ -24,32 +24,31 @@ def get_client(tenant="default_tenant", database="default_database"):
         raise typer.Exit(1)
 
     host = cfg.get("host")
+    port = int(cfg.get("port", 8000)) 
     user = cfg.get("user")
     password = cfg.get("password")
 
+    settings = None
     if user and password:
         settings = Settings(
             chroma_client_auth_provider="chromadb.auth.basic_authn.BasicAuthClientProvider",
             chroma_client_auth_credentials=f"{user}:{password}",
         )
-        return HttpClient(
-            host=host,
-            tenant=tenant,
-            database=database,
-            settings=settings,
-        )
-    else:
-        return HttpClient(
-            host=host,
-            tenant=tenant,
-            database=database,
-        )
+
+    return HttpClient(
+        host=host,
+        port=port,          
+        tenant=tenant,
+        database=database,
+        settings=settings,  
+    )
 
 @app.command()
 def config(
     host: str = typer.Option(..., prompt="ChromaDB Host URL"),
     user: str = typer.Option(default=None, prompt="ChromaDB Username (optional)", show_default=False),
     password: str = typer.Option(default=None, prompt="ChromaDB Password (optional)", hide_input=True, show_default=False),
+    port: int = typer.Option(default=8000, prompt="ChromaDB HTTP Port (Default: 8000)", show_default=True),
 ):
     """Configures the base connection to ChromaDB."""
     config_data = {"host": host}
@@ -57,6 +56,8 @@ def config(
         config_data["user"] = user
     if password:
         config_data["password"] = password
+    if port:
+        config_data["port"] = int(port)    
     with open(CONFIG_FILE, "w") as f:
         json.dump(config_data, f)
     console.print("[green]Configuration saved to ~/.chroma_cli.json[/green]")
