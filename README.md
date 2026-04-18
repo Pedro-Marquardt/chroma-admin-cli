@@ -31,7 +31,18 @@ Configure your database host, user, and password. You only need to run this once
 Launch the interactive terminal UI to browse collections, read document texts, and inspect metadata.
 `chroma-cli explore`
 
-### 3. Using Custom Tenants and Databases
+### 3. Filtering Chunks by Metadata
+Interactively browse only the chunks of a specific collection, optionally filtering by metadata key and value. For example, to filter by a filename:
+```
+chroma-cli filter-chunks --collection COLLECTION_NAME --metadata-key filename --metadata-value "myfile.pdf"
+```
+You can also specify tenant and database:
+```
+chroma-cli filter-chunks --collection COLLECTION_NAME --tenant TENANT_ID --database DATABASE_ID --metadata-key filename --metadata-value "myfile.pdf"
+```
+If you omit the metadata filter, all chunks from the collection will be listed for navigation.
+
+### 4. Using Custom Tenants and Databases
 By default, the CLI connects to `default_tenant` and `default_database`. If your ChromaDB instance uses custom namespaces, you can pass them as flags:
 `chroma-cli explore --tenant "2a73d61d-a7de-4f06-89c1-4f65e066debe" --database "88a9e3ab-7d12-46b7-9dbd-2a7b126924c5"`
 
