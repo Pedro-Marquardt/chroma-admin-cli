@@ -1,6 +1,7 @@
 import typer
 import json
 import questionary
+import unicodedata
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
@@ -192,8 +193,13 @@ def filter_chunks(
     for idx, chunk_id in enumerate(ids):
         meta = data["metadatas"][idx] if data.get("metadatas") is not None else {}
         if metadata_key and metadata_value:
-            if meta and str(meta.get(metadata_key)) == str(metadata_value):
-                filtered_idxs.append(idx)
+            meta_val = meta.get(metadata_key)
+            if meta_val is not None:
+                # Normalize both values to NFC for robust unicode comparison
+                meta_val_norm = unicodedata.normalize("NFC", str(meta_val))
+                user_val_norm = unicodedata.normalize("NFC", str(metadata_value))
+                if meta_val_norm == user_val_norm:
+                    filtered_idxs.append(idx)
         else:
             filtered_idxs.append(idx)
 
