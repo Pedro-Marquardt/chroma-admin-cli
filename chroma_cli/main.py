@@ -163,5 +163,79 @@ def explore(
             # Pause to read the chunk before returning to the list
             console.input("\n[bold]Press [Enter] to return to the chunk list...[/bold]")
 
+
+@app.command("filter-chunks")
+def filter_chunks(
+    collection: str = typer.Option(..., "--collection", help="Collection name", prompt=True),
+    tenant: str = typer.Option("default_tenant", help="Tenant ID"),
+    database: str = typer.Option("default_database", help="Database Name"),
+    metadata_key: str = typer.Option(None, help="Metadata key to filter by"),
+    metadata_value: str = typer.Option(None, help="Metadata value to filter by"),
+):
+    """Interactively navigate chunks of a collection, optionally filtering by metadata."""
+    client = get_client(tenant, database)
+    try:
+        col = client.get_collection(name=collection)
+        with console.status(f"Loading chunks from collection '{collection}'..."):
+            data = col.get(include=["documents", "metadatas", "embeddings"])
+    except Exception as e:
+        console.print(f"[red]Error loading collection: {e}[/red]")
+        raise typer.Exit(1)
+
+    ids = data.get("ids", [])
+    if not ids:
+        console.print(f"[yellow]Collection '{collection}' is empty.[/yellow]")
+        return
+
+    # Filter by metadata
+    filtered_idxs = []
+    for idx, chunk_id in enumerate(ids):
+        meta = data["metadatas"][idx] if data.get("metadatas") is not None else {}
+        if metadata_key and metadata_value:
+            if meta and str(meta.get(metadata_key)) == str(metadata_value):
+                filtered_idxs.append(idx)
+        else:
+            filtered_idxs.append(idx)
+
+    if not filtered_idxs:
+        console.print("[yellow]No chunks found with the given criteria.[/yellow]")
+        return
+
+    # Interactive navigation through filtered chunk IDs
+    while True:
+        console.clear()
+        choices_chunks = ["⬅️  Exit"] + [ids[idx] for idx in filtered_idxs]
+        chosen_chunk = questionary.select(
+            f"[{collection}] {len(filtered_idxs)} chunks found. Choose one to inspect:",
+            choices=choices_chunks
+        ).ask()
+
+        if not chosen_chunk or chosen_chunk == "⬅️  Exit":
+            console.print("[green]Exiting chunk navigation mode.[/green]")
+            break
+
+        idx = ids.index(chosen_chunk)
+        text = data["documents"][idx] if data.get("documents") is not None else "N/A"
+        meta = data["metadatas"][idx] if data.get("metadatas") is not None else {}
+        if data.get("embeddings") is not None:
+            raw_embedding = data["embeddings"][idx]
+            embedding = raw_embedding.tolist() if hasattr(raw_embedding, "tolist") else raw_embedding
+        else:
+            embedding = []
+        emb_preview = f"{embedding[:5]} ... ({len(embedding)} dimensions)" if embedding else "No embedding"
+
+        panel_content = f"""
+[bold cyan]ID:[/bold cyan] {chosen_chunk}
+[bold cyan]Metadata:[/bold cyan] {meta}
+[bold cyan]Embedding Preview:[/bold cyan] {emb_preview}
+---
+[bold green]Text:[/bold green]
+{text}
+        """
+        console.clear()
+        console.print(Panel(panel_content, title="Chunk Details", expand=False))
+        console.input("\n[bold]Press [Enter] to return to the chunk list...[bold]")
+
+
 if __name__ == "__main__":
     app()
